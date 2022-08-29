@@ -1,14 +1,13 @@
+<!DOCTYPE HTML>
 <html>
   <head>
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
       <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
       <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-      <title>Copy-Chat Ver. 0.1</title>
+      <title>Copy-Chat Ver. 0.2</title>
   </head>
-
   <body style="background-color: #30302e">
-    
     <div id="divUserLogin" class="container d-flex flex-column mt-5 w-25 p-4" style="background-color: #07093d; border-radius: 35px;">
       <div class="input-group ml-4">
         <span class="input-group-text" id="spanUser"><i class="fa-solid fa-user"></i></span>
@@ -23,7 +22,6 @@
         <button class="btn btn-primary" type="button" onclick="loginUser()">Ingresar</button>
       </div>
     </div>
-    
     <div id="divChatContainer" class="container d-flex flex-column mt-5 w-50 h-80" style="background-color: #07093d; border-radius: 35px; opacity: 0.5">
       <div class="chatElement p-2" style="display:none">
         <img class="rounded-circle mx-auto d-block" src="img/profile.png" width="100">
@@ -40,17 +38,16 @@
   </body>
 </html>
 <script type="text/javascript">
+  var user;
   $(document).ready(function(){
     let chat = document.getElementById("chatContainer");
-    //Obtiene el contenido HTML del feed.
-    //getFeed();
     //Por cada enter se agrega el contenido al archivo html (o debería... usa funcion post? es necesario?)
     $("#chatTextArea").on('keypress', function(e){
       if(e.which == 13 && !e.shiftKey && $("#chatTextArea").val().trim() != ""){
         $.ajax({
           type: "POST",
           url: "STSendMessage.php",
-          data: {msg: $("#chatTextArea").val()},
+          data: {msg: $("#chatTextArea").val(), user: user},
           success: function(){
             $("#chatTextArea").val('');
             getFeed();
@@ -82,13 +79,28 @@
     });
   }
 
+  /**
+   * Accede con el usuario y contraseña agregada para mostrar el chat, en otro caso un alert de error.
+   */
   function loginUser(){
-    $("#divUserLogin").hide();
-    $("#divChatContainer").css("opacity","1");
-    $(".chatElement").attr("display","block");
-    $("#chatTextArea").prop("disabled",false);
-    $("#headerUser").html("Bienvenid@ " + $("#inputUser").val().trim());
-    getFeed();
+    $.ajax({
+      type: "POST",
+      url: "STLogin.php",
+      data: {user: $("#inputUser").val().trim(), pass: $("#inputPass").val().trim()},
+      success: function(login){
+        if(login){
+          $("#divChatContainer").css("opacity","1");
+          $(".chatElement").attr("display","block");
+          $("#chatTextArea").prop("disabled",false);
+          $("#headerUser").html("Bienvenid@ " + $("#inputUser").val().trim());
+          user = $("#inputUser").val().trim();
+          getFeed();
+          $("#divUserLogin").fadeOut();
+        }else{
+          alert("Usuario o contrasena incorrecta");
+        }
+      }
+    });
   }
 </script>
 <style>
